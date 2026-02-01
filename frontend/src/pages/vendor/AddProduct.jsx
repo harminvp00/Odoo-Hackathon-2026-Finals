@@ -166,8 +166,8 @@ const AddProduct = () => {
                                                     type="button"
                                                     onClick={() => handleAttributeToggle(val.value_id)}
                                                     className={`px-3 py-1 rounded-full text-sm border transition-colors ${selectedAttributeValues.includes(val.value_id)
-                                                            ? 'bg-primary-600 text-white border-primary-600'
-                                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                                        ? 'bg-primary-600 text-white border-primary-600'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                                                         }`}
                                                 >
                                                     {val.value}

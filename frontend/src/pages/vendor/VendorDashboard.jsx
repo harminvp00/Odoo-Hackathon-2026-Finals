@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
-import { Package, Plus, DollarSign, TrendingUp, Archive } from 'lucide-react';
-import { getMyProducts, deleteProduct } from '../../api/product.api';
+import { Package, Plus, IndianRupee, TrendingUp, Archive } from 'lucide-react';
+import { getMyProducts } from '../../api/product.api';
+import { getMyInvoices } from '../../api/invoice.api';
 import { useAuth } from '../../context/AuthContext';
 
 const VendorDashboard = () => {
     const { user } = useAuth();
     const [products, setProducts] = useState([]);
+    const [revenue, setRevenue] = useState(0);
     const [loading, setLoading] = useState(true);
 
     const getImageUrl = (path) => {
@@ -18,19 +20,30 @@ const VendorDashboard = () => {
     };
 
     useEffect(() => {
-        const fetchVendorProducts = async () => {
+        const loadDashboardData = async () => {
             try {
-                const myProducts = await getMyProducts();
-                // If response is { count, products: [] } extract products
-                const list = myProducts.products || myProducts;
-                setProducts(Array.isArray(list) ? list : []);
+                const [myProducts, myInvoices] = await Promise.all([
+                    getMyProducts(),
+                    getMyInvoices()
+                ]);
+
+                const productList = myProducts.products || myProducts;
+                setProducts(Array.isArray(productList) ? productList : []);
+
+                const invoices = Array.isArray(myInvoices) ? myInvoices : (myInvoices.invoices || []);
+                const totalRevenue = invoices.reduce((sum, inv) => {
+                    return sum + parseFloat(inv.total || 0);
+                }, 0);
+
+                setRevenue(totalRevenue);
+
             } catch (error) {
-                console.error("Failed to fetch products", error);
+                console.error("Failed to fetch dashboard data", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchVendorProducts();
+        loadDashboardData();
     }, []);
 
     const StatsCard = ({ title, value, icon: Icon, color }) => (
@@ -72,7 +85,7 @@ const VendorDashboard = () => {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10">
                     <StatsCard title="Total Inventory" value={products.length || 0} icon={Package} color="bg-blue-500" />
                     <StatsCard title="Active Rentals" value="0" icon={TrendingUp} color="bg-green-500" />
-                    <StatsCard title="Total Revenue" value="$0.00" icon={DollarSign} color="bg-indigo-500" />
+                    <StatsCard title="Total Revenue" value={`₹${revenue.toFixed(2)}`} icon={IndianRupee} color="bg-indigo-500" />
                     <StatsCard title="Pending Orders" value="0" icon={Archive} color="bg-yellow-500" />
                 </div>
 
@@ -130,7 +143,7 @@ const VendorDashboard = () => {
                                                 {product.Inventory?.total_quantity || 0}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                ${product.price_per_day || '0.00'}
+                                                ₹{product.price_per_day || '0.00'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <Link to={`/vendor/edit-product/${product.product_id}`} className="text-primary-600 hover:text-primary-900 mr-4">Edit</Link>

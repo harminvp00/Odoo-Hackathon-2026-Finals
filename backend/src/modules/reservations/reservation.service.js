@@ -1,4 +1,4 @@
-const { Reservation, InventoryTransaction, Product, sequelize } = require('../../models');
+const { Reservation, Inventory, InventoryTransaction, Product, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 
 const createReservation = async (orderItemId, productId, startDate, endDate, quantity, transaction) => {
@@ -26,7 +26,9 @@ const checkAvailability = async (productId, startDate, endDate, quantity) => {
 
     // 1. Get Total Stock
     // This is simplified. Ideally keep a running total in Inventory table.
-    const product = await Product.findByPk(productId, { include: ['Inventory'] });
+    const product = await Product.findByPk(productId, {
+        include: [{ model: Inventory }]
+    });
     const totalStock = product.Inventory ? product.Inventory.total_quantity : 0;
 
     // 2. Get Reserved Quantity for overlapping period
@@ -51,6 +53,16 @@ const checkAvailability = async (productId, startDate, endDate, quantity) => {
     });
 
     const reservedQuantity = reservations.reduce((sum, res) => sum + res.quantity, 0);
+
+    console.log(`[DEBUG] Check Availability:
+        Product: ${productId}
+        Range: ${startDate} - ${endDate}
+        Req Qty: ${quantity}
+        Total Stock: ${totalStock} (from Inventory: ${JSON.stringify(product.Inventory)})
+        Found Reservations: ${reservations.length}
+        Total Reserved: ${reservedQuantity}
+        Available: ${totalStock - reservedQuantity}
+    `);
 
     return (totalStock - reservedQuantity) >= quantity;
 };

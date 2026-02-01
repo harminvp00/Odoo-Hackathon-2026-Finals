@@ -17,12 +17,23 @@ import VendorDashboard from './pages/vendor/VendorDashboard';
 import VendorOrders from './pages/vendor/VendorOrders';
 import VendorQuotations from './pages/vendor/VendorQuotations';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import UserDetails from './pages/admin/UserDetails';
+import AdminSettings from './pages/admin/AdminSettings';
 import InvoiceDetails from './pages/common/InvoiceDetails';
 import LandingPage from './pages/LandingPage';
 import Button from './components/common/Button';
 
-// --- Components ---
+// --- Protected Route Component ---
+const ProtectedRoute = ({ children, allowedRoles }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <div>Loading...</div>;
+    if (!user) return <Navigate to="/login" />;
+    if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" />;
+    return children;
+};
 
+// --- Navbar Component ---
 const Navbar = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -44,58 +55,61 @@ const Navbar = () => {
                             </div>
                         </Link>
                         <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
-                            {(!user || user.role !== 'VENDOR') && (
-                                <Link to="/products" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                                    Browse Equipment
-                                </Link>
+                            {/* Customer Links */}
+                            {(!user || (user.role !== 'VENDOR' && user.role !== 'ADMIN')) && (
+                                <>
+                                    <Link to="/products" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
+                                        Browse Equipment
+                                    </Link>
+                                    <Link to="/my-quotations" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
+                                        My Quotations
+                                    </Link>
+                                    <Link to="/my-invoices" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
+                                        Invoices
+                                    </Link>
+                                </>
                             )}
-                            {!user && (
-                                <Link to="/register/vendor" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                                    Become a Vendor
-                                </Link>
+
+                            {/* Vendor Links */}
+                            {user && user.role === 'VENDOR' && (
+                                <>
+                                    <Link to="/vendor/dashboard" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Dashboard</Link>
+                                    <Link to="/vendor/orders" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Orders</Link>
+                                    <Link to="/vendor/quotations" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Quotations</Link>
+                                </>
+                            )}
+
+                            {/* Admin Links */}
+                            {user && user.role === 'ADMIN' && (
+                                <>
+                                    <Link to="/admin/dashboard" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Dashboard</Link>
+                                    <Link to="/admin/users" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Users</Link>
+                                    <Link to="/admin/settings" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Settings</Link>
+                                </>
                             )}
                         </div>
                     </div>
-                    <div className="hidden sm:ml-6 sm:flex sm:items-center">
+
+                    <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
                         {user ? (
-                            <div className="flex items-center space-x-6">
-                                {user.role === 'ADMIN' && (
-                                    <Link to="/admin/dashboard" className="text-gray-500 hover:text-primary-600 font-medium text-sm">Admin Dashboard</Link>
-                                )}
-                                {user.role === 'CUSTOMER' && (
-                                    <>
-                                        <Link to="/cart" className="text-gray-500 hover:text-primary-600 font-medium text-sm flex items-center gap-1">
-                                            <span>Cart</span>
-                                        </Link>
-                                        <Link to="/quotations" className="text-gray-500 hover:text-primary-600 font-medium text-sm">My Orders</Link>
-                                        <Link to="/customer/invoices" className="text-gray-500 hover:text-primary-600 font-medium text-sm">My Invoices</Link>
-                                    </>
-                                )}
-                                {user.role === 'VENDOR' && (
-                                    <>
-                                        <Link to="/" className="text-gray-500 hover:text-primary-600 font-medium text-sm">Dashboard</Link>
-                                        <Link to="/vendor/orders" className="text-gray-500 hover:text-primary-600 font-medium text-sm">Orders</Link>
-                                        <Link to="/vendor/quotations" className="text-gray-500 hover:text-primary-600 font-medium text-sm">Quotations</Link>
-                                    </>
-                                )}
-                                <div className="h-6 w-px bg-gray-300" aria-hidden="true" />
-                                <div className="relative flex items-center cursor-pointer group">
-                                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
-                                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                                    </div>
-                                    <span className="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-900">{user.name}</span>
-                                    <button onClick={handleLogout} className="ml-4 text-xs font-semibold text-gray-500 hover:text-red-600 uppercase tracking-wider border border-gray-200 rounded px-2 py-1 hover:bg-red-50 transition-colors">
-                                        Log out
-                                    </button>
-                                </div>
+                            <div className="flex items-center space-x-4">
+                                <span className="text-sm text-gray-700">Hi, {user.email}</span>
+                                <Button onClick={handleLogout} variant="outline" size="sm">Logout</Button>
                             </div>
                         ) : (
-                            <div className="flex items-center space-x-4">
-                                <Link to="/login" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Sign in</Link>
-                                <Link to="/register" className="bg-primary-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                                    Get Started
-                                </Link>
+                            <div className="flex space-x-2">
+                                <Link to="/login"><Button variant="ghost" size="sm">Login</Button></Link>
+                                <Link to="/register-selection"><Button size="sm">Get Started</Button></Link>
                             </div>
+                        )}
+                        {/* Cart only for customers */}
+                        {(!user || user.role === 'CUSTOMER') && (
+                            <Link to="/cart" className="p-2 text-gray-400 hover:text-gray-500 relative">
+                                <span className="sr-only">View cart</span>
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -104,6 +118,7 @@ const Navbar = () => {
     );
 };
 
+// --- Footer Component ---
 const Footer = () => {
     const { user } = useAuth();
     return (
@@ -139,7 +154,6 @@ const Footer = () => {
 };
 
 // --- Dashboards ---
-
 const CustomerDashboard = ({ user }) => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="md:flex md:items-center md:justify-between mb-8">
@@ -155,43 +169,16 @@ const CustomerDashboard = ({ user }) => (
                 </Link>
             </div>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-100 hover:border-primary-100 transition-colors">
-                <div className="px-6 py-8">
-                    <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
-                            <svg className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <div className="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt className="text-sm font-medium text-gray-500 truncate">Active Quotations</dt>
-                                <dd>
-                                    <div className="text-2xl font-bold text-gray-900">0</div>
-                                </dd>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-gray-50 px-6 py-3">
-                    <div className="text-sm">
-                        <Link to="/quotations" className="font-medium text-primary-600 hover:text-primary-500">View orders <span aria-hidden="true">&rarr;</span></Link>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {/* Simplified Dashboard content for brevity - can be expanded */}
     </div>
 );
 
-// --- Main Layout ---
-
+// --- Home Component ---
 const Home = () => {
     const { user } = useAuth();
     if (user) {
-        if (user.role === 'ADMIN') return <AdminDashboard />;
-        if (user.role === 'VENDOR') return <VendorDashboard />;
+        if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" />;
+        if (user.role === 'VENDOR') return <Navigate to="/vendor/dashboard" />;
         return <CustomerDashboard user={user} />;
     }
     return <LandingPage />;
@@ -199,48 +186,50 @@ const Home = () => {
 
 function App() {
     return (
-        <div className="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased selection:bg-primary-100 selection:text-primary-700">
-            <AuthProvider>
-                <CartProvider>
-                    <div className="flex flex-col min-h-screen">
+        <AuthProvider>
+            <CartProvider>
+                <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 antialiased selection:bg-primary-100 selection:text-primary-700">
+                    <div className="flex-grow">
                         <Navbar />
-                        <main className="flex-grow">
-                            <Routes>
-                                <Route path="/" element={<Home />} />
+                        <Routes>
+                            {/* Public Routes */}
+                            <Route path="/" element={<Home />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register-selection" element={<RegisterSelection />} />
+                            <Route path="/register/customer" element={<RegisterCustomer />} />
+                            <Route path="/register/vendor" element={<RegisterVendor />} />
 
-                                {/* Auth Routes */}
-                                <Route path="/login" element={<Login />} />
-                                <Route path="/register" element={<RegisterSelection />} />
-                                <Route path="/register/customer" element={<RegisterCustomer />} />
-                                <Route path="/register/vendor" element={<RegisterVendor />} />
+                            {/* Customer Routes */}
+                            <Route path="/products" element={<Products />} />
+                            <Route path="/products/:id" element={<ProductDetails />} />
+                            <Route path="/cart" element={<Cart />} />
+                            <Route path="/my-quotations" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><MyQuotations /></ProtectedRoute>} />
+                            <Route path="/quotations/:id" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><QuotationDetailsPage /></ProtectedRoute>} />
+                            <Route path="/my-invoices" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><CustomerInvoices /></ProtectedRoute>} />
 
-                                <Route path="/products" element={<Products />} />
-                                <Route path="/products/:id" element={<ProductDetails />} />
+                            {/* Vendor Routes */}
+                            <Route path="/vendor/dashboard" element={<ProtectedRoute allowedRoles={['VENDOR']}><VendorDashboard /></ProtectedRoute>} />
+                            <Route path="/vendor/add-product" element={<ProtectedRoute allowedRoles={['VENDOR']}><AddProduct /></ProtectedRoute>} />
+                            <Route path="/vendor/edit-product/:id" element={<ProtectedRoute allowedRoles={['VENDOR']}><EditProduct /></ProtectedRoute>} />
+                            <Route path="/vendor/orders" element={<ProtectedRoute allowedRoles={['VENDOR']}><VendorOrders /></ProtectedRoute>} />
+                            <Route path="/vendor/quotations" element={<ProtectedRoute allowedRoles={['VENDOR']}><VendorQuotations /></ProtectedRoute>} />
 
-                                <Route path="/cart" element={<Cart />} />
-                                <Route path="/quotations" element={<MyQuotations />} />
-                                <Route path="/quotations/:id" element={<QuotationDetailsPage />} />
-                                <Route path="/customer/invoices" element={<CustomerInvoices />} />
+                            {/* Admin Routes */}
+                            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+                            <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><UserManagement /></ProtectedRoute>} />
+                            <Route path="/admin/users/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><UserDetails /></ProtectedRoute>} />
+                            <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminSettings /></ProtectedRoute>} />
 
-                                {/* Vendor Routes */}
-                                <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-                                <Route path="/vendor/add-product" element={<AddProduct />} />
-                                <Route path="/vendor/edit-product/:id" element={<EditProduct />} />
-                                <Route path="/vendor/orders" element={<VendorOrders />} />
-                                <Route path="/vendor/quotations" element={<VendorQuotations />} />
+                            {/* Common Routes */}
+                            <Route path="/invoices/:id" element={<InvoiceDetails />} />
 
-                                {/* Admin Routes */}
-                                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
-                                {/* Common Routes */}
-                                <Route path="/invoices/:id" element={<InvoiceDetails />} />
-                            </Routes>
-                        </main>
-                        <Footer />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
                     </div>
-                </CartProvider>
-            </AuthProvider>
-        </div>
+                    <Footer />
+                </div>
+            </CartProvider>
+        </AuthProvider>
     );
 }
 

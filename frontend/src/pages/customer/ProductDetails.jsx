@@ -113,7 +113,7 @@ const ProductDetails = () => {
                     )}
 
                     <div className="mt-4 flex items-baseline">
-                        <span className="text-3xl font-extrabold text-gray-900">${product.price_per_day}</span>
+                        <span className="text-3xl font-extrabold text-gray-900">₹{product.price_per_day}</span>
                         <span className="ml-1 text-xl text-gray-500">/day</span>
                     </div>
 
@@ -146,7 +146,7 @@ const ProductDetails = () => {
                             <div className="bg-gray-50 p-3 rounded text-right">
                                 <span className="text-gray-600 block text-xs">Estimated Total</span>
                                 <span className="text-2xl font-bold text-primary-600">
-                                    ${calculateTotal()}
+                                    ₹{calculateTotal()}
                                 </span>
                             </div>
 

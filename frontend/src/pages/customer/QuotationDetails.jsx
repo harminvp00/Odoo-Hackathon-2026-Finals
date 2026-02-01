@@ -76,6 +76,7 @@ const QuotationDetails = () => {
                             <th className="px-6 py-3 text-left">Product</th>
                             <th className="px-6 py-3 text-left">Dates</th>
                             <th className="px-6 py-3 text-left">Quantity</th>
+                            <th className="px-6 py-3 text-right">Price</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -84,6 +85,7 @@ const QuotationDetails = () => {
                                 <td className="px-6 py-4">{item.Product?.name}</td>
                                 <td className="px-6 py-4">{new Date(item.start_date).toLocaleDateString()} - {new Date(item.end_date).toLocaleDateString()}</td>
                                 <td className="px-6 py-4">{item.quantity}</td>
+                                <td className="px-6 py-4 text-right">₹{item.price_snapshot || '0.00'}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -110,7 +110,53 @@ const loginUser = async (email, password) => {
     };
 };
 
+const crypto = require('crypto');
+const { Op } = require('sequelize');
+
+// ... (existing imports, but make sure crypto is at top with others) 
+// Actually I will just add crypto here if not present, or better replace imports if needed.
+// But replace_file_content targets a block. 
+// I will append functions at the end before module.exports
+
+const generatePasswordResetToken = async (email) => {
+    const user = await User.findOne({ where: { email } });
+    if (!user) throw new Error('User not found');
+
+    // Generate Request Token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    user.reset_password_token = hash;
+    user.reset_password_expires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    return resetToken;
+};
+
+const resetPassword = async (token, newPassword) => {
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+        where: {
+            reset_password_token: hash,
+            reset_password_expires: { [Op.gt]: Date.now() }
+        }
+    });
+
+    if (!user) throw new Error('Invalid or expired token');
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password_hash = hashedPassword;
+    user.reset_password_token = null;
+    user.reset_password_expires = null;
+    await user.save();
+
+    return user;
+};
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    generatePasswordResetToken,
+    resetPassword
 };

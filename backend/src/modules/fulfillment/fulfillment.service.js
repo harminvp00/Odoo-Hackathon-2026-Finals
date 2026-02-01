@@ -17,7 +17,14 @@ const processPickup = async (orderId) => {
         await order.save({ transaction: t });
 
         await t.commit();
-        return order;
+
+        const fullOrder = await RentalOrder.findByPk(orderId, {
+            include: [{
+                model: require('../../models').CustomerProfile,
+                include: [{ model: require('../../models').User }]
+            }]
+        });
+        return fullOrder;
     } catch (error) {
         await t.rollback();
         throw error;
@@ -41,7 +48,14 @@ const processReturn = async (orderId) => {
         await order.save({ transaction: t });
 
         await t.commit();
-        return order;
+
+        const fullOrder = await RentalOrder.findByPk(orderId, {
+            include: [{
+                model: require('../../models').CustomerProfile,
+                include: [{ model: require('../../models').User }]
+            }]
+        });
+        return fullOrder;
     } catch (error) {
         await t.rollback();
         throw error;

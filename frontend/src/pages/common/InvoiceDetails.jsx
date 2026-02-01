@@ -75,7 +75,7 @@ const InvoiceDetails = () => {
                                 {new Date(item.start_date).toLocaleDateString()} - {new Date(item.end_date).toLocaleDateString()}
                             </td>
                             <td className="py-4 text-right text-sm text-gray-900 font-medium">
-                                ${parseFloat(item.final_price).toFixed(2)}
+                                ₹{parseFloat(item.final_price).toFixed(2)}
                             </td>
                         </tr>
                     ))}
@@ -86,15 +86,15 @@ const InvoiceDetails = () => {
                 <div className="w-64 space-y-3">
                     <div className="flex justify-between text-sm text-gray-600">
                         <span>Subtotal</span>
-                        <span>${invoice.subtotal}</span>
+                        <span>₹{invoice.subtotal}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
                         <span>Tax (18%)</span>
-                        <span>${invoice.tax_amount}</span>
+                        <span>₹{invoice.tax_amount}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-gray-900 border-t border-gray-200 pt-3">
                         <span>Total</span>
-                        <span>${invoice.total}</span>
+                        <span>₹{invoice.total}</span>
                     </div>
                 </div>
             </div>

@@ -46,13 +46,12 @@ const CustomerInvoices = () => {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-lg font-bold text-gray-900">
-                                                ${invoice.total}
+                                            <div className="flex items-center text-sm text-gray-500">
+                                                <span className="font-semibold text-gray-900 mr-1">₹{invoice.total}</span>
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invoice.status === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                    {invoice.status}
+                                                </span>
                                             </div>
-                                            <span className={`px-2 py-1 text-xs rounded-full inline-block mt-1 
-                                                ${invoice.status === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                {invoice.status}
-                                            </span>
                                         </div>
                                     </div>
                                 </Link>

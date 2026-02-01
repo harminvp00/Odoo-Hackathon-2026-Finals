@@ -13,9 +13,19 @@ const createQuotation = async (customerId, items) => {
         // items: [{ product_id, start_date, end_date, quantity }]
         if (items && items.length > 0) {
             for (const item of items) {
-                // Fetch product price (simplified: assume base price for now, real app would calculate based on duration)
-                // ideally we fetch ProductPricing
+                // Fetch product price
                 const product = await Product.findByPk(item.product_id);
+
+                let calculatedPrice = 0;
+                if (product) {
+                    const start = new Date(item.start_date);
+                    const end = new Date(item.end_date);
+                    const diffTime = Math.abs(end - start);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; // Minimum 1 day
+
+                    const dailyRate = parseFloat(product.price_per_day || 0);
+                    calculatedPrice = dailyRate * diffDays * item.quantity;
+                }
 
                 await QuotationItem.create({
                     quotation_id: quotation.quotation_id,
@@ -23,7 +33,7 @@ const createQuotation = async (customerId, items) => {
                     start_date: item.start_date,
                     end_date: item.end_date,
                     quantity: item.quantity,
-                    price_snapshot: 0 // Placeholder: would calculate price based on logic
+                    price_snapshot: calculatedPrice
                 }, { transaction: t });
             }
         }

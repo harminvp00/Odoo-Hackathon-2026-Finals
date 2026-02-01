@@ -35,7 +35,7 @@ const ProductCard = ({ product }) => {
                     <div>
                         <span className="text-xs text-gray-500">Daily Rate</span>
                         <div className="flex items-center gap-2">
-                            <p className="text-lg font-bold text-primary-600">${product.price_per_day || getLowestPrice()}</p>
+                            <p className="text-lg font-bold text-primary-600">₹{product.price_per_day || getLowestPrice()}</p>
                             {product.status !== 'ACTIVE' && (
                                 <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">
                                     {product.status}

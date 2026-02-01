@@ -46,7 +46,16 @@ const createOrderFromQuotation = async (quotationId) => {
         await quotation.save({ transaction: t });
 
         await t.commit();
-        return order;
+
+        // Reload order with customer details for email
+        const fullOrder = await RentalOrder.findByPk(order.order_id, {
+            include: [{
+                model: require('../../models').CustomerProfile,
+                include: [{ model: require('../../models').User }]
+            }]
+        });
+
+        return fullOrder;
     } catch (error) {
         await t.rollback();
         throw error;
